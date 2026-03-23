@@ -327,7 +327,13 @@ const LessonViewer = ({ lessonId: propLessonId, pathId: propPathId, initialLesso
   return (
     <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col md:mr-24" dir="rtl">
       {/* Header */}
-      <header className="h-16 md:h-20 bg-white border-b border-slate-100 flex items-center justify-between px-4 md:px-8 shrink-0 z-20">
+      <header 
+        className="bg-white border-b border-slate-100 flex items-center justify-between px-4 md:px-8 shrink-0 z-20 md:h-20"
+        style={{ 
+          paddingTop: 'env(safe-area-inset-top)',
+          height: 'calc(4rem + env(safe-area-inset-top))'
+        }}
+      >
         <button 
           onClick={() => onClose ? onClose() : navigate('/')}
           className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
