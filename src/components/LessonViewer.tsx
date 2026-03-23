@@ -365,8 +365,7 @@ const LessonViewer = ({ lessonId: propLessonId, pathId: propPathId, initialLesso
       {/* Main Content Area */}
       <main ref={mainRef} className="flex-1 overflow-y-auto flex flex-col pt-10 md:pt-12 px-4 md:px-12 pb-32 lg:pb-12 scroll-smooth">
         <div 
-          className={`flex-1 flex flex-col ${isScrollMode ? 'gap-16 md:gap-32' : 'lg:flex-row gap-8 lg:gap-16 items-center'} ${(!hasMedia && !isScrollMode) ? 'justify-center' : ''}`}
-          style={{ width: '367.2px', maxWidth: '100%', margin: '0 auto' }}
+          className={`flex-1 w-full max-w-7xl mx-auto flex flex-col ${isScrollMode ? 'gap-16 md:gap-32' : 'lg:flex-row gap-8 lg:gap-16 items-center'} ${(!hasMedia && !isScrollMode) ? 'justify-center' : ''}`}
         >
           {isScrollMode ? (
             <div className="w-full space-y-24 py-12">
