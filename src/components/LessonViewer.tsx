@@ -327,7 +327,7 @@ const LessonViewer = ({ lessonId: propLessonId, pathId: propPathId, initialLesso
   return (
     <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col md:mr-24" dir="rtl">
       {/* Header */}
-      <header className="sticky top-0 z-10 h-16 md:h-20 bg-white border-b border-slate-100 flex items-center justify-between px-4 md:px-8 shrink-0">
+      <header className="sticky top-0 z-10 h-14 md:h-20 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-4 md:px-8 shrink-0">
         <button 
           onClick={() => onClose ? onClose() : navigate('/')}
           className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
@@ -335,9 +335,9 @@ const LessonViewer = ({ lessonId: propLessonId, pathId: propPathId, initialLesso
           <X className="w-5 h-5 md:w-6 md:h-6" />
         </button>
         
-        <div className="flex flex-col items-center flex-1 px-4">
-          <h1 className="text-sm md:text-xl font-bold text-slate-800 truncate max-w-[200px] md:max-w-none">{lesson?.title || 'عنوان الدرس'}</h1>
-          <div className="w-full max-w-2xl mt-2 md:mt-4 h-1 md:h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="flex flex-col items-center flex-1 px-2 md:px-4">
+          <h1 className="text-xs md:text-xl font-bold text-slate-800 truncate max-w-[150px] md:max-w-none">{lesson?.title || 'عنوان الدرس'}</h1>
+          <div className="w-full max-w-2xl mt-1.5 md:mt-4 h-1 md:h-1.5 bg-slate-100 rounded-full overflow-hidden">
              <div 
                className="bg-violet-600 h-full transition-all duration-500" 
                style={{ width: isScrollMode ? `${scrollProgress}%` : `${((currentPage + 1) / pages.length) * 100}%` }}
@@ -357,7 +357,7 @@ const LessonViewer = ({ lessonId: propLessonId, pathId: propPathId, initialLesso
       </header>
 
       {/* Main Content Area */}
-      <main ref={mainRef} className="flex-1 overflow-y-auto flex flex-col p-4 md:p-12 pb-32 lg:pb-12 scroll-smooth">
+      <main ref={mainRef} className="flex-1 overflow-y-auto flex flex-col pt-8 px-4 md:p-12 pb-32 lg:pb-12 scroll-smooth">
         <div className={`flex-1 max-w-7xl mx-auto w-full flex flex-col ${isScrollMode ? 'gap-16 md:gap-32' : 'lg:flex-row gap-8 lg:gap-16 items-center'} ${(!hasMedia && !isScrollMode) ? 'justify-center' : ''}`}>
           {isScrollMode ? (
             <div className="w-full space-y-24 py-12">
