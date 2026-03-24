@@ -19,7 +19,7 @@ const Sidebar = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-24 bg-white border-l border-slate-100 flex-col items-center py-8 gap-8 fixed right-0 h-full z-40 transition-colors duration-300">
+      <aside className="hidden md:flex w-24 bg-white border-l border-slate-100 flex-col items-center pt-8 pb-8 -mt-[26px] gap-8 fixed right-0 h-full z-40 transition-colors duration-300">
         <div className="bg-violet-600 p-3 rounded-2xl shadow-lg shadow-violet-200 mb-4">
           <BookOpen className="text-white w-6 h-6" />
         </div>
