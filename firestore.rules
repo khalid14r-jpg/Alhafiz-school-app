@@ -78,14 +78,20 @@ service cloud.firestore {
       return isAuthenticated() &&
         (
           request.auth.token.email == "khalid14r@gmail.com" ||
+          request.auth.token.email == "khalid15r@gmail.com" ||
           (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
            (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher'))
         );
     }
 
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
     function isValidUser(data) {
       return data.keys().hasAll(['uid', 'role', 'first_name', 'father_name']) &&
+             hasOnlyAllowedFields(['uid', 'role', 'first_name', 'father_name', 'username', 'grandfather_name', 'family_name', 'school_name', 'grade']) &&
              data.uid is string &&
              data.role in ['student', 'teacher', 'admin'] &&
              data.first_name is string && data.first_name.size() > 0 && data.first_name.size() < 100 &&
@@ -94,16 +100,19 @@ service cloud.firestore {
 
     function isValidPath(data) {
       return data.keys().hasAll(['title']) &&
+             hasOnlyAllowedFields(['title', 'description', 'icon', 'category', 'image_url', 'order_index']) &&
              data.title is string && data.title.size() > 0 && data.title.size() < 200;
     }
 
     function isValidLesson(data) {
       return data.keys().hasAll(['title']) &&
+             hasOnlyAllowedFields(['title', 'image_url', 'source', 'duration', 'order_index', 'path_id', 'path_title', 'category', 'page_count']) &&
              data.title is string && data.title.size() > 0 && data.title.size() < 200;
     }
 
     function isValidPage(data) {
       return data.keys().hasAll(['type', 'order_index']) &&
+             hasOnlyAllowedFields(['type', 'title', 'content', 'image_url', 'video_url', 'audio_url', 'question', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option', 'explanation', 'order_index', 'direction', 'lesson_id', 'questions']) &&
              data.type in ['explanation', 'question', 'media', 'matching', 'blanks', 'iframe'] &&
              data.order_index is number;
     }
@@ -149,12 +158,13 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isAuthenticated() && (isOwner(userId) || isAdmin());
       allow list: if isAdmin();
-      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data);
-      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data);
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'student' || isAdmin());
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
       
       match /progress/{lessonId} {
         allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
-        allow write: if isAuthenticated() && isOwner(userId) && isValidProgress(request.resource.data);
+        allow create, update: if isAuthenticated() && isOwner(userId) && isValidProgress(request.resource.data);
+        allow delete: if isAuthenticated() && isOwner(userId);
       }
     }
 
@@ -171,15 +181,18 @@ service cloud.firestore {
 
     match /paths/{pathId} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin() && isValidPath(request.resource.data);
+      allow create, update: if isAdmin() && isValidPath(request.resource.data);
+      allow delete: if isAdmin();
 
       match /lessons/{lessonId} {
         allow read: if isAuthenticated();
-        allow write: if isAdmin() && isValidLesson(request.resource.data);
+        allow create, update: if isAdmin() && isValidLesson(request.resource.data);
+        allow delete: if isAdmin();
 
         match /pages/{pageId} {
           allow read: if isAuthenticated();
-          allow write: if isAdmin() && isValidPage(request.resource.data);
+          allow create, update: if isAdmin() && isValidPage(request.resource.data);
+          allow delete: if isAdmin();
         }
       }
     }

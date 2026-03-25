@@ -53,6 +53,7 @@ const LessonEditor = ({ lessonId, pathId, onClose }: LessonEditorProps) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [pageToDelete, setPageToDelete] = useState<number | null>(null);
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -776,13 +777,11 @@ const LessonEditor = ({ lessonId, pathId, onClose }: LessonEditorProps) => {
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
-                    const newPages = pages.filter((_, i) => i !== idx);
-                    setPages(newPages);
-                    if (selectedPageIndex >= newPages.length) setSelectedPageIndex(Math.max(0, newPages.length - 1));
+                    setPageToDelete(idx);
                   }}
-                  className="absolute -top-1 -left-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  className="absolute -top-1 -left-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm z-10 hover:scale-110 transition-transform"
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
@@ -1000,6 +999,52 @@ const LessonEditor = ({ lessonId, pathId, onClose }: LessonEditorProps) => {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Delete Page Confirmation Modal */}
+      <AnimatePresence>
+        {pageToDelete !== null && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPageToDelete(null)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-white rounded-[32px] shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden p-6 text-center"
+            >
+              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">حذف الصفحة</h3>
+              <p className="text-slate-500 mb-6 font-bold">هل أنت متأكد من حذف هذه الصفحة؟ لا يمكن التراجع عن هذا الإجراء بعد الحفظ.</p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setPageToDelete(null)}
+                  className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+                >
+                  إلغاء
+                </button>
+                <button 
+                  onClick={() => {
+                    const newPages = pages.filter((_, i) => i !== pageToDelete);
+                    setPages(newPages);
+                    if (selectedPageIndex >= newPages.length) setSelectedPageIndex(Math.max(0, newPages.length - 1));
+                    setPageToDelete(null);
+                  }}
+                  className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors"
+                >
+                  حذف
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Preview Modal */}
       <AnimatePresence>
         {isPreviewOpen && (
