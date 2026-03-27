@@ -174,7 +174,7 @@ service cloud.firestore {
       match /progress/{lessonId} {
         allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
         allow create, update: if isAuthenticated() && isOwner(userId) && isValidProgress(request.resource.data);
-        allow delete: if isAuthenticated() && isOwner(userId);
+        allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
       }
     }
 

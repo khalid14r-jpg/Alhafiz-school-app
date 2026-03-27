@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import type { Path, Lesson } from '../types';
-import { collection, query, getDocs, onSnapshot, doc, getDoc, collectionGroup, where } from 'firebase/firestore';
+import { collection, query, getDocs, onSnapshot, doc, getDoc, collectionGroup, where, deleteDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 
 const CategoryBar = ({ activeCategory, setActiveCategory }: { activeCategory: string, setActiveCategory: (cat: string) => void }) => {
@@ -95,12 +95,33 @@ const HomePage = () => {
       
       const lessonPromises = snapshot.docs.map(async (docSnap) => {
         const data = docSnap.data();
+        
+        // Verify lesson existence in its path
+        if (data.path_id && data.path_id !== 'undefined') {
+          try {
+            const lessonRef = doc(db, 'paths', data.path_id, 'lessons', docSnap.id);
+            const lessonSnap = await getDoc(lessonRef);
+            if (!lessonSnap.exists()) {
+              // Lesson was deleted from the path, but progress record remains.
+              // Clean up the progress record to avoid showing it on the home page.
+              await deleteDoc(docSnap.ref);
+              return null;
+            }
+          } catch (e) {
+            console.error("Error verifying lesson existence:", e);
+            // If we can't verify (e.g. permission error), keep it for now
+          }
+        } else {
+          // If path_id is missing, we can't verify easily, so we filter it out
+          return null;
+        }
+
         if (data.completed) completed.add(docSnap.id);
         
         let actualPageCount = data.page_count || 0;
         
         // If page_count is missing or 0, try to fetch it from the actual lesson pages
-        if (!actualPageCount && data.path_id && data.path_id !== 'undefined') {
+        if (!actualPageCount) {
           try {
             const pagesSnap = await getDocs(collection(db, 'paths', data.path_id, 'lessons', docSnap.id, 'pages'));
             actualPageCount = pagesSnap.size;
@@ -125,10 +146,10 @@ const HomePage = () => {
         };
       });
 
-      const resolvedLessons = await Promise.all(lessonPromises);
+      const resolvedLessons = (await Promise.all(lessonPromises)).filter(l => l !== null);
       
       setCompletedLessons(completed);
-      setMyLessons(resolvedLessons);
+      setMyLessons(resolvedLessons as any);
     }, (err) => {
       handleFirestoreError(err, OperationType.GET, `users/${user.id}/progress`);
     });

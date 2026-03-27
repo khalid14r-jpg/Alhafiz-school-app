@@ -405,14 +405,50 @@ const AdminDashboard = () => {
 
     try {
       if (type === 'path') {
-        await deleteDoc(doc(db, 'paths', id));
+        const batch = writeBatch(db);
+        
+        // Delete all lessons and their pages in this path
+        const lessonsSnap = await getDocs(collection(db, 'paths', id, 'lessons'));
+        for (const lessonDoc of lessonsSnap.docs) {
+          // Delete pages
+          const pagesSnap = await getDocs(collection(db, 'paths', id, 'lessons', lessonDoc.id, 'pages'));
+          pagesSnap.docs.forEach(pageDoc => batch.delete(pageDoc.ref));
+          
+          // Delete lesson
+          batch.delete(lessonDoc.ref);
+          
+          // Cleanup progress records for this lesson
+          const progressQuery = query(collectionGroup(db, 'progress'), where('lesson_id', '==', lessonDoc.id));
+          const progressSnapshot = await getDocs(progressQuery);
+          progressSnapshot.docs.forEach(pDoc => batch.delete(pDoc.ref));
+        }
+        
+        // Delete the path itself
+        batch.delete(doc(db, 'paths', id));
+        await batch.commit();
+
         if (selectedPath === id) {
           setSelectedPath(null);
           setLessons([]);
         }
       } else if (type === 'lesson') {
         if (!selectedPath) return;
-        await deleteDoc(doc(db, 'paths', selectedPath, 'lessons', id));
+        const batch = writeBatch(db);
+        
+        // Delete pages
+        const pagesSnap = await getDocs(collection(db, 'paths', selectedPath, 'lessons', id, 'pages'));
+        pagesSnap.docs.forEach(pageDoc => batch.delete(pageDoc.ref));
+        
+        // Delete lesson
+        batch.delete(doc(db, 'paths', selectedPath, 'lessons', id));
+        
+        // Cleanup progress records for this lesson
+        const progressQuery = query(collectionGroup(db, 'progress'), where('lesson_id', '==', id));
+        const progressSnapshot = await getDocs(progressQuery);
+        progressSnapshot.docs.forEach(pDoc => batch.delete(pDoc.ref));
+        
+        await batch.commit();
+        
         setSelectedLesson(null);
         setPages([]);
       } else if (type === 'user') {
