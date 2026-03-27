@@ -77,8 +77,8 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() &&
         (
-          request.auth.token.email == "khalid14r@gmail.com" ||
-          request.auth.token.email == "khalid15r@gmail.com" ||
+          (request.auth.token.email == "khalid14r@gmail.com" && request.auth.token.email_verified == true) ||
+          (request.auth.token.email == "khalid15r@gmail.com" && request.auth.token.email_verified == true) ||
           (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
            (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher'))
@@ -91,11 +91,14 @@ service cloud.firestore {
 
     function isValidUser(data) {
       return data.keys().hasAll(['uid', 'role', 'first_name', 'father_name']) &&
-             hasOnlyAllowedFields(['uid', 'role', 'first_name', 'father_name', 'username', 'grandfather_name', 'family_name', 'school_name', 'grade']) &&
+             hasOnlyAllowedFields(['uid', 'role', 'first_name', 'father_name', 'username', 'grandfather_name', 'family_name', 'school_name', 'grade', 'email', 'password', 'createdAt']) &&
              data.uid is string &&
              data.role in ['student', 'teacher', 'admin'] &&
              data.first_name is string && data.first_name.size() > 0 && data.first_name.size() < 100 &&
-             data.father_name is string && data.father_name.size() > 0 && data.father_name.size() < 100;
+             data.father_name is string && data.father_name.size() > 0 && data.father_name.size() < 100 &&
+             (!('email' in data) || data.email is string) &&
+             (!('password' in data) || data.password is string) &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
     function isValidPath(data) {
@@ -165,7 +168,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isAuthenticated() && (isOwner(userId) || isAdmin());
       allow list: if isAdmin();
-      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'student' || isAdmin());
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role in ['student', 'teacher'] || isAdmin());
       allow update: if isAuthenticated() && (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
       
       match /progress/{lessonId} {
